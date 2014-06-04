@@ -1,9 +1,14 @@
 
 import gc
-import sys
 import threading
 import unittest
 import weakref
+
+import os
+import sys
+
+if 'TOX_ENV' not in os.environ:
+    sys.path.insert(0, '../')
 
 from fibers import Fiber, current
 

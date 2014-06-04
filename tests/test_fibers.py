@@ -1,9 +1,14 @@
 
 import copy
-import sys
 import time
 import threading
 import unittest
+
+import os
+import sys
+
+if 'TOX_ENV' not in os.environ:
+    sys.path.insert(0, '../')
 
 import fibers
 from fibers import Fiber, current
@@ -154,6 +159,29 @@ class FiberTests(unittest.TestCase):
             g.switch()
         t1 = threading.Thread(target=runner, args=(0.2,))
         t2 = threading.Thread(target=runner, args=(0.3,))
+        t1.start()
+        t2.start()
+        t1.join()
+        t2.join()
+
+    def test_switch_after_thread_of_prev_fiber_exited(self):
+        def thread1():
+            def fiber1():
+                time.sleep(0.4)
+            f11 = fibers.Fiber(fiber1)
+            f11.switch()
+        def thread2():
+            time.sleep(0.2)
+            def fiber1():
+                time.sleep(0.4)
+                f22.switch()
+            def fiber2():
+                pass
+            f21 = fibers.Fiber(fiber1)
+            f22 = fibers.Fiber(fiber2)
+            f21.switch()
+        t1 = threading.Thread(target=thread1)
+        t2 = threading.Thread(target=thread2)
         t1.start()
         t2.start()
         t1.join()
